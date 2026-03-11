@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+  }
+
+  datasource db {
+    provider = "postgresql"
+      url      = env("DATABASE_URL")
+      }
+
+      model User {
+        id        String   @id @default(cuid())
+          email     String   @unique
+            name      String?
+              password  String?
+                role      String   @default("user")
+                  createdAt DateTime @default(now())
+                    updatedAt DateTime @updatedAt
+                      agents    Agent[]
+                        calls     Call[]
+                        }
+
+                        model Agent {
+                          id            String   @id @default(cuid())
+                            name          String
+                              systemPrompt  String   @db.Text
+                                voice         String   @default("alloy")
+                                  language      String   @default("en")
+                                    llmProvider   String   @default("openai")
+                                      llmModel      String   @default("gpt-4o")
+                                        sttProvider   String   @default("deepgram")
+                                          ttsProvider   String   @default("openai")
+                                            temperature   Float    @default(0.7)
+                                              guardrails    Json?
+                                                tools         Json?
+                                                  status        String   @default("draft")
+                                                    version       Int      @default(1)
+                                                      userId        String
+                                                        user          User     @relation(fields: [userId], references: [id])
+                                                          calls         Call[]
+                                                            createdAt     DateTime @default(now())
+                                                              updatedAt     DateTime @updatedAt
+                                                              }
+
+                                                              model Call {
+                                                                id            String   @id @default(cuid())
+                                                                  callSid       String?  @unique
+                                                                    direction     String
+                                                                      fromNumber    String
+                                                                        toNumber      String
+                                                                          status        String   @default("initiated")
+                                                                            duration      Int?
+                                                                              latencyAvg    Float?
+                                                                                sentiment     String?
+                                                                                  transcript    Json?
+                                                                                    totalCost     Float?
+                                                                                      agentId       String?
+                                                                                        agent         Agent?   @relation(fields: [agentId], references: [id])
+                                                                                          userId        String
+                                                                                            user          User     @relation(fields: [userId], references: [id])
+                                                                                              createdAt     DateTime @default(now())
+                                                                                                updatedAt     DateTime @updatedAt
+                                                                                                }
+
+                                                                                                model PhoneNumber {
+                                                                                                  id        String   @id @default(cuid())
+                                                                                                    number    String   @unique
+                                                                                                      provider  String   @default("twilio")
+                                                                                                        status    String   @default("active")
+                                                                                                          createdAt DateTime @default(now())
+                                                                                                          }
+                                                                                                          
+                                                                                                          model KnowledgeBase {
+                                                                                                            id        String   @id @default(cuid())
+                                                                                                              name      String
+                                                                                                                content   String   @db.Text
+                                                                                                                  type      String
+                                                                                                                    createdAt DateTime @default(now())
+                                                                                                                      updatedAt DateTime @updatedAt
+                                                                                                                      }
